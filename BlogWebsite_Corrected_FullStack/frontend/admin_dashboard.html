@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard | Blog App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f5;
+      padding: 30px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Admin Dashboard</h2>
+
+<div class="section">
+  <h3>All Posts</h3>
+  <table id="postsTable">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Author</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h3>Registered Users</h3>
+  <table id="usersTable">
+    <thead>
+    <tr>
+      <th>Email</th>
+      <th>Username</th>
+      <th>Role</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (!token || role !== "ADMIN") {
+    alert("Access Denied. Admins only.");
+    window.location.href = "login.html";
+  }
+
+  async function loadPosts() {
+    try {
+      const res = await fetch("http://localhost:8080/api/posts", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("Failed to load posts");
+      const posts = await res.json();
+      const tbody = document.getElementById("postsTable").querySelector("tbody");
+
+      posts.forEach(post => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${post.id}</td>
+          <td>${post.title}</td>
+          <td>${post.author?.username || post.author?.email || "N/A"}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      alert("Error loading posts: " + err.message);
+    }
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await fetch("http://localhost:8080/api/users", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      if (!res.ok) throw new Error("Failed to load users");
+      const users = await res.json();
+      const tbody = document.getElementById("usersTable").querySelector("tbody");
+
+      users.forEach(user => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.email}</td>
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      alert("Error loading users: " + err.message);
+    }
+  }
+
+  loadPosts();
+  loadUsers();
+</script>
+
+</body>
+</html>

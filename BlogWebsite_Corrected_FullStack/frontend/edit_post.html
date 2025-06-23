@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Post | Blog App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.5s ease;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen transition-colors duration-300 px-4 py-10 flex flex-col items-center">
+
+  <div class="w-full max-w-xl bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg animate-fadeIn">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">✏️ Edit Your Blog Post</h2>
+      <button id="toggleMode" class="text-xl">🌙</button>
+    </div>
+
+    <form id="editForm" class="space-y-6">
+      <div>
+        <label for="title" class="block font-semibold mb-1">Title</label>
+        <input type="text" id="title" required
+               class="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      </div>
+
+      <div>
+        <label for="content" class="block font-semibold mb-1">Content</label>
+        <textarea id="content" rows="6" required
+                  class="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded transition duration-200">
+        💾 Update Post
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // Dark Mode Toggle
+    const toggleBtn = document.getElementById("toggleMode");
+    toggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      toggleBtn.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
+    });
+
+    const token = localStorage.getItem("token");
+    const postId = localStorage.getItem("editPostId");
+
+    if (!token || !postId) {
+      alert("🔐 Unauthorized access. Please login again.");
+      window.location.href = "login.html";
+    }
+
+    async function loadPost() {
+      try {
+        const res = await fetch(`http://localhost:8080/api/posts/${postId}`, {
+          headers: {
+            Authorization: "Bearer " + token
+          }
+        });
+
+        if (!res.ok) {
+          alert("❌ Failed to load post.");
+          return;
+        }
+
+        const post = await res.json();
+        document.getElementById("title").value = post.title;
+        document.getElementById("content").value = post.content;
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error loading post.");
+      }
+    }
+
+    loadPost();
+
+    document.getElementById("editForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const updatedPost = {
+        title: document.getElementById("title").value,
+        content: document.getElementById("content").value
+      };
+
+      try {
+        const res = await fetch(`http://localhost:8080/api/posts/${postId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify(updatedPost)
+        });
+
+        if (res.ok) {
+          alert("✅ Post updated successfully!");
+          localStorage.removeItem("editPostId");
+          window.location.href = "my_posts.html";
+        } else {
+          const errorText = await res.text();
+          alert("❌ Failed to update post.\n" + errorText);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error occurred while updating post.");
+      }
+    });
+  </script>
+</body>
+</html>

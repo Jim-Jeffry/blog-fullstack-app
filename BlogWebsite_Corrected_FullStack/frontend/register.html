@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Blog App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white h-screen flex justify-center items-center px-4">
+
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-sm animate-fadeIn">
+    <div class="flex justify-between items-center mb-5">
+      <h2 class="text-2xl font-bold">📝 Register</h2>
+      <button id="toggleMode" class="text-xl">🌙</button>
+    </div>
+
+    <input id="email" type="email" placeholder="Email"
+           class="w-full mb-4 p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+    <input id="password" type="password" placeholder="Password"
+           class="w-full mb-4 p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+
+    <button onclick="register()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded transition duration-200">
+      Register
+    </button>
+
+    <p class="msg text-sm font-semibold mt-4 text-center" id="msg"></p>
+
+    <p class="text-center text-sm mt-4">
+      Already have an account? 
+      <a href="login.html" class="text-blue-500 hover:underline font-semibold">Login</a>
+    </p>
+  </div>
+
+  <script>
+    // Dark mode toggle
+    const toggleBtn = document.getElementById("toggleMode");
+    toggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      toggleBtn.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
+    });
+
+    async function register() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+
+      msg.textContent = "";
+      msg.className = "msg text-sm font-semibold mt-4 text-center";
+
+      if (!email || !password) {
+        msg.textContent = "❌ All fields are required.";
+        msg.classList.add("text-red-500");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:8080/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const text = await res.text();
+
+        if (res.ok) {
+          msg.textContent = "✅ " + text;
+          msg.classList.remove("text-red-500");
+          msg.classList.add("text-green-500");
+          setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
+        } else {
+          msg.textContent = "❌ " + text;
+          msg.classList.add("text-red-500");
+        }
+      } catch (err) {
+        msg.textContent = "❌ Something went wrong!";
+        msg.classList.add("text-red-500");
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

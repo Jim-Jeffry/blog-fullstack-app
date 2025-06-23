@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Blog App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+</head>
+<body class="bg-blue-50 dark:bg-gray-900 flex items-center justify-center min-h-screen transition-colors duration-300">
+
+  <div class="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg animate-fadeIn">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">🔐 Login</h2>
+      <button id="themeToggle" class="text-xl dark:text-white">🌙</button>
+    </div>
+
+    <form id="loginForm" class="space-y-4">
+      <input type="email" id="email" placeholder="Email" required
+             class="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input type="password" id="password" placeholder="Password" required
+             class="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button type="submit"
+              class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md transition">
+        Login
+      </button>
+    </form>
+
+    <p class="text-center text-sm mt-4 dark:text-white">Don't have an account? <a href="register.html" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold">Register</a></p>
+
+    <p class="mt-4 text-center font-semibold" id="msg"></p>
+  </div>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById("themeToggle");
+    const root = document.documentElement;
+    themeToggle.addEventListener("click", () => {
+      root.classList.toggle("dark");
+      themeToggle.textContent = root.classList.contains("dark") ? "🌙" : "☀️";
+    });
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const msg = document.getElementById('msg');
+      msg.textContent = '';
+      msg.className = 'mt-4 text-center font-semibold';
+
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        let data = {};
+        try {
+          data = await response.json();
+        } catch {}
+
+        if (response.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('email', data.email);
+          msg.textContent = '✅ Login successful!';
+          msg.classList.add('text-green-500');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1000);
+        } else {
+          msg.textContent = '❌ ' + (data.message || 'Invalid credentials');
+          msg.classList.add('text-red-500');
+        }
+
+      } catch (err) {
+        msg.textContent = '❌ Server error';
+        msg.classList.add('text-red-500');
+        console.error(err);
+      }
+    });
+  </script>
+
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.5s ease;
+    }
+  </style>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Blog App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+
+    // Dark Mode Setup
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white dark:bg-gray-800 shadow-lg h-screen p-6 hidden sm:block">
+    <h1 class="text-2xl font-bold text-center mb-8">📚 My Blog</h1>
+    <nav class="space-y-4">
+      <a href="dashboard.html" class="block px-4 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800">🏠 Dashboard</a>
+      <a href="create_post.html" class="block px-4 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800">✍️ Create Post</a>
+      <a href="my_posts.html" class="block px-4 py-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800">🗂️ My Posts</a>
+      <button onclick="logout()" class="block px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white w-full mt-6">🚪 Logout</button>
+      <button onclick="toggleDarkMode()" id="toggleDarkBtn" class="mt-4 text-sm text-blue-500 hover:underline">🌓</button>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 overflow-y-auto">
+    <div class="flex justify-between items-center flex-wrap">
+      <h2 class="text-3xl font-bold mb-4">Welcome to Your Dashboard</h2>
+      <div class="text-sm">
+        👤 <span id="userEmail">-</span> | Role: <span id="userRole">-</span>
+      </div>
+    </div>
+
+    <!-- Blog Cards -->
+    <div id="posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+      <p class="col-span-3 text-center text-gray-500">⏳ Loading posts...</p>
+    </div>
+
+    <!-- Floating Create Post Button -->
+    <a href="create_post.html" title="Create Post"
+       class="fixed bottom-6 right-6 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition duration-300">
+      ➕
+    </a>
+  </main>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role') || 'User';
+    const email = localStorage.getItem('email') || 'Unknown';
+
+    if (!token) {
+      alert("Unauthorized. Please login first.");
+      window.location.href = "login.html";
+    }
+
+    document.getElementById('userEmail').innerText = email;
+    document.getElementById('userRole').innerText = role;
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function toggleDarkMode() {
+      const root = document.documentElement;
+      root.classList.toggle('dark');
+      const newTheme = root.classList.contains('dark') ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+    }
+
+    async function fetchMyPosts() {
+      const postsDiv = document.getElementById("posts");
+      try {
+        const res = await fetch(`http://localhost:8080/api/posts/user?email=${encodeURIComponent(email)}`, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        if (!res.ok) throw new Error("Failed to load posts");
+
+        const posts = await res.json();
+        postsDiv.innerHTML = "";
+
+        if (!posts.length) {
+          postsDiv.innerHTML = `<p class="col-span-3 text-center text-gray-500 dark:text-gray-400">📭 No posts found.</p>`;
+          return;
+        }
+
+        posts.forEach(post => {
+          const div = document.createElement("div");
+          div.className = "bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-xl transition-all";
+          div.innerHTML = `
+            <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400">${post.title}</h3>
+            <p class="text-sm mt-2 line-clamp-4">${post.content}</p>
+            <div class="text-xs mt-4 text-gray-500 dark:text-gray-400">🕒 ${new Date(post.createdAt).toLocaleString()}</div>
+          `;
+          postsDiv.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+        postsDiv.innerHTML = `<p class="col-span-3 text-center text-red-500">❌ Error loading posts.</p>`;
+      }
+    }
+
+    fetchMyPosts();
+  </script>
+</body>
+</html>

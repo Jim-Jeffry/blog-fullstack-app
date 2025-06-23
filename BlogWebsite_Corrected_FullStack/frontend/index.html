@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-blue-600 dark:bg-blue-800 text-white py-4 shadow-md flex justify-between items-center px-6">
+    <h1 class="text-xl md:text-2xl font-bold">🌍 Explore All Blog Posts</h1>
+    <button id="themeToggle" class="text-xl">🌙</button>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-4 py-10">
+    <div id="posts-container" class="space-y-6"></div>
+    <div class="text-center mt-10">
+      <a href="login.html" class="inline-block text-blue-600 dark:text-blue-400 hover:underline font-semibold text-lg">
+        Login to Write Your Own →
+      </a>
+    </div>
+  </main>
+
+  <script>
+    async function fetchPublicPosts() {
+      const container = document.getElementById("posts-container");
+      container.innerHTML = "<p class='text-center'>Loading posts...</p>";
+
+      try {
+        const response = await fetch("http://localhost:8080/api/posts/all");
+        if (!response.ok) {
+          container.innerHTML = "<p class='text-center text-red-500'>⚠️ Failed to load posts. Please try again later.</p>";
+          return;
+        }
+
+        const posts = await response.json();
+        if (posts.length === 0) {
+          container.innerHTML = "<p class='text-center'>No blog posts available yet. Be the first to write one!</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        posts.forEach(post => {
+          const postDiv = document.createElement("div");
+          postDiv.className =
+            "bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-xl transform transition hover:-translate-y-1";
+          postDiv.innerHTML = `
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-2">${post.title}</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-4">${post.content}</p>
+            <div class="text-sm text-gray-500 dark:text-gray-400">By ${post.author} • ${new Date(post.createdAt).toLocaleDateString()}</div>
+          `;
+          container.appendChild(postDiv);
+        });
+      } catch (error) {
+        container.innerHTML = "<p class='text-center text-red-500'>❌ Error loading posts. Please check your connection.</p>";
+      }
+    }
+
+    fetchPublicPosts();
+
+    // Toggle theme
+    const themeToggle = document.getElementById("themeToggle");
+    themeToggle.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      themeToggle.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
+    });
+  </script>
+
+</body>
+</html>

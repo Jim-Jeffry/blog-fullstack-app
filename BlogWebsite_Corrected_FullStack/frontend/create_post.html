@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Blog Post</title>
+
+  <!-- Tailwind Config + CDN -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-300">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center px-6 py-4 bg-white dark:bg-gray-800 shadow-md">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">📝 Create New Post</h1>
+    <button id="themeToggle" class="text-xl focus:outline-none">
+      🌙
+    </button>
+  </header>
+
+  <!-- Form Container -->
+  <main class="max-w-xl mx-auto mt-10 p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg">
+    <form id="postForm" class="space-y-6">
+      <div>
+        <label for="title" class="block text-sm font-semibold mb-1">Title</label>
+        <input type="text" id="title" class="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white" required />
+      </div>
+
+      <div>
+        <label for="content" class="block text-sm font-semibold mb-1">Content</label>
+        <textarea id="content" rows="6" class="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white resize-none" required></textarea>
+      </div>
+
+      <button type="submit" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold transition duration-200">
+        🚀 Publish Post
+      </button>
+    </form>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    const token = localStorage.getItem("token");
+    const email = localStorage.getItem("email");
+
+    if (!token) {
+      alert("Please login to create a post.");
+      window.location.href = "login.html";
+    }
+
+    // Submit Post
+    document.getElementById("postForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const post = {
+        title: document.getElementById("title").value,
+        content: document.getElementById("content").value,
+        authorEmail: email || "anonymous"
+      };
+
+      try {
+        const res = await fetch("http://localhost:8080/api/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify(post)
+        });
+
+        if (res.ok) {
+          alert("✅ Post published successfully!");
+          window.location.href = "my_posts.html";
+        } else {
+          const error = await res.text();
+          alert("❌ Failed to publish post: " + error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error occurred while publishing.");
+      }
+    });
+
+    // Dark Mode Toggle
+    const toggleBtn = document.getElementById("themeToggle");
+    toggleBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      toggleBtn.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
+    });
+  </script>
+</body>
+</html>

@@ -95,23 +95,9 @@ PUT /api/posts/{id} — Requires token
 
 DELETE /api/posts/{id} — Requires token
 
-📷 Screenshots
-You can add screenshots of your UI here like:
-
-Dashboard
-
-Login/Register page
-
-Create Post form
-
-Responsive view with dark mode
-
 👨‍💻 Author
 Jim Jeffry
 Java Full Stack Developer | GitHub | LinkedIn
 
 📜 License
 This project is open-source and available under the MIT License.
-
-
-Let me know if you want to customize the README for internship use, job submission, or add screenshots/links.
